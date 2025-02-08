@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 public class Scanner {
 
@@ -8,6 +11,27 @@ public class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 1;
+
+    private static final Map<String, TokenType> keywords;
+
+    static{
+        keywords = new HashMap<>();
+        keywords.put("and", AND);
+        keywords.put("class", CLASS);
+        keywords.put("else", ELSE);
+        keywords.put("false", FALSE);
+        keywords.put("for", FOR);
+        keywords.put("fun", FUN);
+        keywords.put("if", IF);
+        keywords.put("nil", NIL);
+        keywords.put("or", OR);
+        keywords.put("print", PRINT);
+        keywords.put("return", RETURN);
+        keywords.put("super", SUPER);
+        keywords.put("this", TokenType.THIS);
+        keywords.put("var", VAR);
+        keywords.put("while", WHILE);
+    }
 
     
     Scanner(String source){
@@ -72,6 +96,8 @@ public class Scanner {
             default:
                 if(isDigit(c))
                     number();
+                else if(isAlpha())
+                    identifier();
                 Lox.error(line, "Unexpected Character.");
                 break;
         }
@@ -80,7 +106,7 @@ public class Scanner {
     // Handling Numbers
 
     private boolean isDigit(char c){
-        return c >= '0' && c<='9';
+        return c >= '0' && c <= '9';
     }
 
     private void number(){
@@ -95,6 +121,26 @@ public class Scanner {
         addToken(NUMBER,
         Double.parseDouble(source.substring(start, current)));
     }
+
+    // Handling identifiers
+
+    private boolean isAlpha(char c){
+        return (c >= 'A' && c <= 'Z')
+        || (c >= 'a' && c <= 'z')
+        || c == '_';
+    }
+
+    private boolean isAlphaNumeric(char c){
+        return isAlpha(c) || isDigit(c);
+    }
+
+    private void identifier(){
+        while(isAlphaNumeric(peek())) advance();
+
+        addToken(IDENTIFIER);
+    }
+
+
 
     private char advance(){
         return source.charAt(current++);
