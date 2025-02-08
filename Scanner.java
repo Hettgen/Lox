@@ -45,7 +45,7 @@ public class Scanner {
             // Tokens greater than 1 character
             case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
             case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL);
-            case '>': addToken(match("=") ? GREATER_EQUAL : GREATER);
+            case '>': addToken(match('=') ? GREATER_EQUAL : GREATER);
             case '<': addToken(match('=') ? LESS_EQUAL : EQUAL);
 
             // Case for slash (/)
@@ -56,10 +56,44 @@ public class Scanner {
                     addToken(SLASH);
                 break;
 
+            // Case for whitespace
+            case ' ':
+            case '\r':
+            case '\t':
+            break;
+
+            case '\n':
+                line++;
+                break;
+
+            // String literals
+            case '"': string(); break;
+
             default:
+                if(isDigit(c))
+                    number();
                 Lox.error(line, "Unexpected Character.");
                 break;
         }
+    }
+
+    // Handling Numbers
+
+    private boolean isDigit(char c){
+        return c >= '0' && c<='9';
+    }
+
+    private void number(){
+        while(isDigit(peek())) advance();
+
+        if(peek() == '.' && isDigit(peekNext())){
+
+            advance();
+
+            while(isDigit(peek())) advance();
+        }
+        addToken(NUMBER,
+        Double.parseDouble(source.substring(start, current)));
     }
 
     private char advance(){
@@ -86,6 +120,29 @@ public class Scanner {
     private char peek(){
         if(isAtEnd()) return '\0';
         return source.charAt(current);
+    }
+
+    private char peekNext(){
+        if(current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
+    }
+
+    private void string(){
+        while(peek() != '"' && !isAtEnd()){
+            if(peek() == '\n') line++;
+            advance();
+        }
+
+        if(isAtEnd()){
+            Lox.error(line, "String not terminated");
+            return;
+        }
+
+        advance();
+
+        // To trim surrounding quotes
+        String value = source.substring(start + 1, current - 1);
+        addToken(STRING, value);
     }
 
     
